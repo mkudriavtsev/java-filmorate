@@ -17,7 +17,7 @@ public class Film {
 
     @Null(groups = ValidationGroup.OnCreate.class)
     @NotNull(groups = ValidationGroup.OnUpdate.class)
-    private Integer id;
+    private Long id;
 
     @NotBlank
     private String name;

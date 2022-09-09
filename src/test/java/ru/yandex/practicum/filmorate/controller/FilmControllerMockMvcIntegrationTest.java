@@ -137,7 +137,7 @@ class FilmControllerMockMvcIntegrationTest {
         Film film = getTestFilm();
         repository.save(film);
         Film updatedFilm = getUpdatedTestFilm();
-        updatedFilm.setId(-1);
+        updatedFilm.setId(-1L);
         mockMvc.perform(
                         put(uri)
                                 .content(objectMapper.writeValueAsString(updatedFilm))
@@ -148,7 +148,7 @@ class FilmControllerMockMvcIntegrationTest {
 
     private Film getTestFilm() {
         Film film = new Film();
-        film.setId(1);
+        film.setId(1L);
         film.setName("nisi eiusmod");
         film.setDescription("adipisicing");
         film.setDuration(Duration.ofMinutes(100));
@@ -158,7 +158,7 @@ class FilmControllerMockMvcIntegrationTest {
 
     private Film getUpdatedTestFilm() {
         Film film = new Film();
-        film.setId(1);
+        film.setId(1L);
         film.setName("Film Updated");
         film.setDescription("New film update description");
         film.setDuration(Duration.ofMinutes(190));

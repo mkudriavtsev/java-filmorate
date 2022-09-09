@@ -137,7 +137,7 @@ class UserControllerMockMvcIntegrationTest {
         User user = getTestUser();
         repository.save(user);
         User updatedUser = getUpdatedUser();
-        updatedUser.setId(-1);
+        updatedUser.setId(-1L);
         mockMvc.perform(
                         put(uri)
                                 .content(objectMapper.writeValueAsString(updatedUser))
@@ -149,7 +149,7 @@ class UserControllerMockMvcIntegrationTest {
 
     private User getTestUser() {
         User user = new User();
-        user.setId(1);
+        user.setId(1L);
         user.setEmail("mail@mail.ru");
         user.setLogin("dolore");
         user.setName("Nick Name");
@@ -159,7 +159,7 @@ class UserControllerMockMvcIntegrationTest {
 
     private User getUpdatedUser() {
         User user = new User();
-        user.setId(1);
+        user.setId(1L);
         user.setLogin("doloreUpdate");
         user.setName("est adipisicing");
         user.setEmail("mail@yandex.ru");

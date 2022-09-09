@@ -7,11 +7,11 @@ import ru.yandex.practicum.filmorate.repository.GenericRepository;
 import java.util.*;
 
 @Component
-public class FilmInMemoryRepository implements GenericRepository<Film, Integer> {
-    private final Map<Integer, Film> films = new HashMap<>();
-    private int currentID;
+public class FilmInMemoryRepository implements GenericRepository<Film, Long> {
+    private final Map<Long, Film> films = new HashMap<>();
+    private long currentID;
 
-    public int getNextID() {
+    public long getNextID() {
         return ++currentID;
     }
 
@@ -24,7 +24,7 @@ public class FilmInMemoryRepository implements GenericRepository<Film, Integer> 
     }
 
     @Override
-    public Optional<Film> findById(Integer id) {
+    public Optional<Film> findById(Long id) {
         return films.containsKey(id) ? Optional.of(films.get(id)) : Optional.empty();
     }
 
