@@ -2,15 +2,16 @@ package ru.yandex.practicum.filmorate.repository.impl;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.GenericRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
 import java.util.*;
 
 @Component
-public class UserInMemoryRepository implements GenericRepository<User, Long> {
+public class UserInMemoryRepository implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
     private long currentID;
 
+    @Override
     public long getNextID() {
         return ++currentID;
     }

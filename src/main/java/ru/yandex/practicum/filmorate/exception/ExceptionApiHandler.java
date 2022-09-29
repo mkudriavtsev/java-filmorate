@@ -27,6 +27,14 @@ public class ExceptionApiHandler {
                 .body(new ErrorMessage(exception.getMessage()));
     }
 
+    @ExceptionHandler(IllegalRequestException.class)
+    public ResponseEntity<ErrorMessage> illegalRequestException(IllegalRequestException exception) {
+        log.warn(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
     @Getter
     @RequiredArgsConstructor
     static class ErrorMessage{

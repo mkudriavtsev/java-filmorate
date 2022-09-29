@@ -11,9 +11,11 @@ import javax.validation.constraints.Null;
 import javax.validation.constraints.Size;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
-public class Film {
+public class Film{
 
     @Null(groups = ValidationGroup.OnCreate.class)
     @NotNull(groups = ValidationGroup.OnUpdate.class)
@@ -30,4 +32,6 @@ public class Film {
 
     @DurationMin(minutes = 0)
     private Duration duration;
+
+    private final Set<Long> likes = new HashSet<>();
 }
