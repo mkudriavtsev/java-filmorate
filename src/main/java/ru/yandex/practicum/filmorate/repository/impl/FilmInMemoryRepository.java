@@ -2,16 +2,17 @@ package ru.yandex.practicum.filmorate.repository.impl;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.repository.GenericRepository;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
 
 import java.util.*;
 
 @Component
-public class FilmInMemoryRepository implements GenericRepository<Film, Long> {
+public class FilmInMemoryRepository implements FilmRepository {
     private final Map<Long, Film> films = new HashMap<>();
     private long currentID;
 
-    public long getNextID() {
+    @Override
+    public long getNextId() {
         return ++currentID;
     }
 

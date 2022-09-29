@@ -16,6 +16,7 @@
 	<properties>
 		<java.version>11</java.version>
 		<lombok.version>1.18.24</lombok.version>
+		<commons-lang3.version>3.12.0</commons-lang3.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -36,6 +37,11 @@
 			<artifactId>lombok</artifactId>
 			<version>${lombok.version}</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>${commons-lang3.version}</version>
 		</dependency>
 	</dependencies>
 	<build>

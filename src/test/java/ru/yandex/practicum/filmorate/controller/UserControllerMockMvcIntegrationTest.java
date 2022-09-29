@@ -15,17 +15,16 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 class UserControllerMockMvcIntegrationTest {
 
-    private static final URI uri = URI.create("/users");
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -44,7 +43,7 @@ class UserControllerMockMvcIntegrationTest {
         User user = getTestUser();
         repository.save(user);
         mockMvc.perform(
-                        get(uri))
+                        get(URI.create("/users")))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of(user))));
     }
@@ -55,7 +54,7 @@ class UserControllerMockMvcIntegrationTest {
         user.setId(null);
         User expectedUser = getTestUser();
         mockMvc.perform(
-                        post(uri)
+                        post(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(user))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -69,7 +68,7 @@ class UserControllerMockMvcIntegrationTest {
         user.setId(null);
         user.setLogin("dolore ullamco");
         mockMvc.perform(
-                        post(uri)
+                        post(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(user))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -82,7 +81,7 @@ class UserControllerMockMvcIntegrationTest {
         user.setId(null);
         user.setEmail("mail.ru");
         mockMvc.perform(
-                        post(uri)
+                        post(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(user))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -95,7 +94,7 @@ class UserControllerMockMvcIntegrationTest {
         user.setId(null);
         user.setBirthday(LocalDate.of(2466, 8, 20));
         mockMvc.perform(
-                        post(uri)
+                        post(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(user))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -110,7 +109,7 @@ class UserControllerMockMvcIntegrationTest {
         User expectedUser = getTestUser();
         expectedUser.setName(expectedUser.getLogin());
         mockMvc.perform(
-                        post(uri)
+                        post(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(user))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -124,7 +123,7 @@ class UserControllerMockMvcIntegrationTest {
         repository.save(user);
         User updatedUser = getUpdatedUser();
         mockMvc.perform(
-                        put(uri)
+                        put(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(updatedUser))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -139,13 +138,102 @@ class UserControllerMockMvcIntegrationTest {
         User updatedUser = getUpdatedUser();
         updatedUser.setId(-1L);
         mockMvc.perform(
-                        put(uri)
+                        put(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(updatedUser))
                                 .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isNotFound());
     }
 
+    @Test
+    public void givenUser_whenGetById_thenStatus200() throws Exception {
+        User user = getTestUser();
+        repository.save(user);
+        mockMvc.perform(
+                        get(URI.create("/users/1")))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(user)));
+    }
+
+    @Test
+    public void givenUserWithFailId_whenGetById_thenStatus404() throws Exception {
+        User user = getTestUser();
+        repository.save(user);
+        mockMvc.perform(
+                        get(URI.create("/users/-1")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void givenUserAndFriend_whenAddFriend_ThenStatus204AndAddedFriend() throws Exception {
+        User user = getTestUser();
+        User friend = getTestFriendUser();
+        repository.save(user);
+        repository.save(friend);
+        mockMvc.perform(
+                        put(URI.create("/users/1/friends/2")))
+                .andExpect(status().isNoContent());
+        assertTrue(user.getFriends().contains(2L));
+        assertTrue(friend.getFriends().contains(1L));
+    }
+
+    @Test
+    public void givenUserAndFriendWithFailId_whenAddFriend_ThenStatus404() throws Exception {
+        User user = getTestUser();
+        repository.save(user);
+        mockMvc.perform(
+                        put(URI.create("/users/1/friends/-1")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void givenUserAndFriend_whenDeleteFriend_ThenStatus204AndDeletedFriend() throws Exception {
+        User user = getTestUser();
+        User friend = getTestFriendUser();
+        user.getFriends().add(2L);
+        friend.getFriends().add(1L);
+        repository.save(user);
+        repository.save(friend);
+        mockMvc.perform(
+                        delete(URI.create("/users/1/friends/2")))
+                .andExpect(status().isNoContent());
+        assertFalse(user.getFriends().contains(2L));
+        assertFalse(friend.getFriends().contains(1L));
+    }
+
+    @Test
+    public void givenUserAndFriend_whenGetFriends_ThenStatus200() throws Exception {
+        User user = getTestUser();
+        User friend = getTestFriendUser();
+        user.getFriends().add(2L);
+        friend.getFriends().add(1L);
+        repository.save(user);
+        repository.save(friend);
+        mockMvc.perform(
+                        get(URI.create("/users/1/friends")))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(friend))));
+    }
+
+    @Test
+    public void givenCommonFriends_whenGetCommonFriends_ThenStatus200() throws Exception {
+        User user = getTestUser();
+        User friend = getTestFriendUser();
+        User commonFriend = getTestCommonFriendUser();
+        user.getFriends().add(2L);
+        user.getFriends().add(3L);
+        friend.getFriends().add(1L);
+        friend.getFriends().add(3L);
+        commonFriend.getFriends().add(1L);
+        commonFriend.getFriends().add(2L);
+        repository.save(user);
+        repository.save(friend);
+        repository.save(commonFriend);
+        mockMvc.perform(
+                        get(URI.create("/users/1/friends/common/2")))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(commonFriend))));
+    }
 
     private User getTestUser() {
         User user = new User();
@@ -153,8 +241,28 @@ class UserControllerMockMvcIntegrationTest {
         user.setEmail("mail@mail.ru");
         user.setLogin("dolore");
         user.setName("Nick Name");
-        user.setBirthday(LocalDate.of(1946, 8,20));
+        user.setBirthday(LocalDate.of(1946, 8, 20));
         return user;
+    }
+
+    private User getTestFriendUser() {
+        User friend = new User();
+        friend.setId(2L);
+        friend.setEmail("friend@mail.ru");
+        friend.setLogin("friend");
+        friend.setName("friend adipisicing");
+        friend.setBirthday(LocalDate.of(1976, 8, 20));
+        return friend;
+    }
+
+    private User getTestCommonFriendUser() {
+        User commonFriend = new User();
+        commonFriend.setId(3L);
+        commonFriend.setEmail("friend@common.ru");
+        commonFriend.setLogin("common");
+        commonFriend.setName("common");
+        commonFriend.setBirthday(LocalDate.of(2000, 8, 20));
+        return commonFriend;
     }
 
     private User getUpdatedUser() {
