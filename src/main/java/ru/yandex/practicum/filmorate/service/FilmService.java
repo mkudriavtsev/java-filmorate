@@ -28,7 +28,7 @@ public class FilmService {
     }
 
     public Film create(Film film) {
-        film.setId(filmRepository.getNextID());
+        film.setId(filmRepository.getNextId());
         log.info("Фильм с id " + film.getId() + " создан");
         return filmRepository.save(film);
     }

@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.IllegalRequestException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
@@ -26,15 +27,13 @@ public class UserService {
     public User create(User user) {
         List<User> users = repository.findAll();
         users.stream()
-                .filter(u -> u.getLogin().equals(user.getLogin()))
+                .filter(u -> Objects.equals(u.getLogin(), user.getLogin()))
                 .findAny()
                 .ifPresent(u -> {
                     throw new UserAlreadyExistException("Пользователь с таким логином уже зарегистрирован");
                 });
         user.setId(repository.getNextID());
-        if (Objects.isNull(user.getName())) {
-            user.setName(user.getLogin());
-        } else if (user.getName().isBlank()) {
+        if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
         log.info("Пользователь с id " + user.getId() + " зарегистрирован");
@@ -48,13 +47,13 @@ public class UserService {
         }
         List<User> users = repository.findAll();
         users.stream()
-                .filter(u -> !u.getId().equals(user.getId()))
-                .filter(u -> u.getLogin().equals(user.getLogin()))
+                .filter(u -> !Objects.equals(u.getId(), user.getId()))
+                .filter(u -> Objects.equals(u.getLogin(), user.getLogin()))
                 .findAny()
                 .ifPresent(u -> {
                     throw new UserAlreadyExistException("Пользователь с таким логином уже зарегистрирован");
                 });
-        if (Objects.isNull(user.getName())) {
+        if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
         log.info("Данные пользователя с id " + user.getId() + " обновлены");

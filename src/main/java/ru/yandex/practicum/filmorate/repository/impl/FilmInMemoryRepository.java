@@ -12,7 +12,7 @@ public class FilmInMemoryRepository implements FilmRepository {
     private long currentID;
 
     @Override
-    public long getNextID() {
+    public long getNextId() {
         return ++currentID;
     }
 
