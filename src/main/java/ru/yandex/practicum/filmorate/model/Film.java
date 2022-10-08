@@ -33,5 +33,11 @@ public class Film{
     @DurationMin(minutes = 0)
     private Duration duration;
 
+    private Integer rate;
+
     private final Set<Long> likes = new HashSet<>();
+
+    private MPA mpa;
+
+    private final Set<Genre> genres;
 }
