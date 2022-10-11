@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -39,7 +40,7 @@ public class FilmDBRepository implements FilmRepository {
     public Optional<Film> findById(Long id) {
         String sqlQuery = "SELECT * FROM film JOIN mpa ON film.mpa_id = mpa.id WHERE film.id = ?";
         List<Film> films = jdbcTemplate.query(sqlQuery, new FilmRowMapper(), id);
-        if (films.isEmpty()) {
+        if (CollectionUtils.isEmpty(films)) {
             return Optional.empty();
         } else {
             loadLikes(films.get(0));

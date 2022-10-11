@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -34,7 +35,7 @@ public class UserDBRepository implements UserRepository {
     public Optional<User> findById(Long id) {
         String sqlQuery = "SELECT * FROM users WHERE id = ?";
         List<User> users = jdbcTemplate.query(sqlQuery, new UserRowMapper(), id);
-        if (users.isEmpty()) {
+        if (CollectionUtils.isEmpty(users)) {
             return Optional.empty();
         } else {
             loadFriends(users.get(0));

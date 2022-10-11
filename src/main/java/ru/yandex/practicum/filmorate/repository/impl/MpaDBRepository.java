@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class MpaDBRepository implements MpaRepository {
     public Optional<Mpa> findById(Long id) {
         String sqlQuery = "SELECT * FROM mpa WHERE id = ?";
         List<Mpa> mpaList = jdbcTemplate.query(sqlQuery, new MpaRowMapper(), id);
-        if (mpaList.isEmpty()) {
+        if (CollectionUtils.isEmpty(mpaList)) {
             return Optional.empty();
         } else {
             return Optional.of(mpaList.get(0));

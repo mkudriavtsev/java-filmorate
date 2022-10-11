@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.repository.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,7 @@ public class GenreDBRepository implements GenreRepository {
     public Optional<Genre> findById(Long id) {
         String sqlQuery = "SELECT * FROM genre WHERE id = ?";
         List<Genre> genres = jdbcTemplate.query(sqlQuery, new GenreRowMapper(), id);
-        if (genres.isEmpty()) {
+        if (CollectionUtils.isEmpty(genres)) {
             return Optional.empty();
         } else {
             return Optional.of(genres.get(0));
