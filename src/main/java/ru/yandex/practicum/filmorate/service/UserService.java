@@ -14,8 +14,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository repository;
@@ -32,12 +32,12 @@ public class UserService {
                 .ifPresent(u -> {
                     throw new UserAlreadyExistException("Пользователь с таким логином уже зарегистрирован");
                 });
-        user.setId(repository.getNextID());
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
+        repository.save(user);
         log.info("Пользователь с id " + user.getId() + " зарегистрирован");
-        return repository.save(user);
+        return user;
     }
 
     public User update(User user) {
@@ -56,8 +56,9 @@ public class UserService {
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
+        repository.update(user);
         log.info("Данные пользователя с id " + user.getId() + " обновлены");
-        return repository.save(user);
+        return user;
     }
 
     public User findById(Long id) {
@@ -67,14 +68,14 @@ public class UserService {
 
     public void addFriend(Long id, Long friendId) {
         Map<Long, User> users = findTwoUsersById(id, friendId);
-        users.get(id).getFriends().add(friendId);
-        users.get(friendId).getFriends().add(id);
+        repository.addFriend(users.get(id), users.get(friendId));
+        log.info("Пользователь с id " + id + " добавил в друзья пользователя с id " + friendId);
     }
 
     public void deleteFriend(Long id, Long friendId) {
         Map<Long, User> users = findTwoUsersById(id, friendId);
-        users.get(id).getFriends().remove(friendId);
-        users.get(friendId).getFriends().remove(id);
+        repository.deleteFriend(users.get(id), users.get(friendId));
+        log.info("Пользователь с id " + id + " удалил из друзей пользователя с id " + friendId);
     }
 
     public Map<Long, User> findTwoUsersById(Long firstId, Long secondId) {

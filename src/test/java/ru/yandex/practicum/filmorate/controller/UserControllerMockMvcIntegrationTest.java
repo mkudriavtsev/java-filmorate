@@ -1,15 +1,16 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.repository.impl.UserInMemoryRepository;
+import ru.yandex.practicum.filmorate.repository.impl.UserDBRepository;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -23,6 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@AutoConfigureTestDatabase
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 class UserControllerMockMvcIntegrationTest {
 
     @Autowired
@@ -30,18 +33,11 @@ class UserControllerMockMvcIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
-    private UserInMemoryRepository repository;
-
-    @AfterEach
-    public void resetRepository() {
-        repository.deleteAll();
-        repository.resetIdCounter();
-    }
+    private UserDBRepository repository;
 
     @Test
     public void givenUsers_whenGetUsers_thenStatus200() throws Exception {
-        User user = getTestUser();
-        repository.save(user);
+        User user = repository.save(getTestUser());
         mockMvc.perform(
                         get(URI.create("/users")))
                 .andExpect(status().isOk())
@@ -51,8 +47,8 @@ class UserControllerMockMvcIntegrationTest {
     @Test
     public void givenUser_whenCreate_thenStatus201() throws Exception {
         User user = getTestUser();
-        user.setId(null);
         User expectedUser = getTestUser();
+        expectedUser.setId(1L);
         mockMvc.perform(
                         post(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(user))
@@ -65,7 +61,6 @@ class UserControllerMockMvcIntegrationTest {
     @Test
     public void givenUserWithFailLogin_whenCreate_thenStatus400() throws Exception {
         User user = getTestUser();
-        user.setId(null);
         user.setLogin("dolore ullamco");
         mockMvc.perform(
                         post(URI.create("/users"))
@@ -78,7 +73,6 @@ class UserControllerMockMvcIntegrationTest {
     @Test
     public void givenUserWithFailEmail_whenCreate_thenStatus400() throws Exception {
         User user = getTestUser();
-        user.setId(null);
         user.setEmail("mail.ru");
         mockMvc.perform(
                         post(URI.create("/users"))
@@ -91,7 +85,6 @@ class UserControllerMockMvcIntegrationTest {
     @Test
     public void givenUserWithFailBirthday_whenCreate_thenStatus400() throws Exception {
         User user = getTestUser();
-        user.setId(null);
         user.setBirthday(LocalDate.of(2466, 8, 20));
         mockMvc.perform(
                         post(URI.create("/users"))
@@ -104,9 +97,9 @@ class UserControllerMockMvcIntegrationTest {
     @Test
     public void givenUserWithNullName_whenCreate_thenStatus210AndAddsUserWithNameEqualsLogin() throws Exception {
         User user = getTestUser();
-        user.setId(null);
         user.setName(null);
         User expectedUser = getTestUser();
+        expectedUser.setId(1L);
         expectedUser.setName(expectedUser.getLogin());
         mockMvc.perform(
                         post(URI.create("/users"))
@@ -119,9 +112,9 @@ class UserControllerMockMvcIntegrationTest {
 
     @Test
     public void givenUser_whenUpdate_thenStatus200() throws Exception {
-        User user = getTestUser();
-        repository.save(user);
+        User user = repository.save(getTestUser());
         User updatedUser = getUpdatedUser();
+        updatedUser.setId(user.getId());
         mockMvc.perform(
                         put(URI.create("/users"))
                                 .content(objectMapper.writeValueAsString(updatedUser))
@@ -133,8 +126,7 @@ class UserControllerMockMvcIntegrationTest {
 
     @Test
     public void givenUserWithFailId_whenUpdate_thenStatus404() throws Exception {
-        User user = getTestUser();
-        repository.save(user);
+        repository.save(getTestUser());
         User updatedUser = getUpdatedUser();
         updatedUser.setId(-1L);
         mockMvc.perform(
@@ -147,18 +139,16 @@ class UserControllerMockMvcIntegrationTest {
 
     @Test
     public void givenUser_whenGetById_thenStatus200() throws Exception {
-        User user = getTestUser();
-        repository.save(user);
+        User user = repository.save(getTestUser());
         mockMvc.perform(
-                        get(URI.create("/users/1")))
+                        get(URI.create("/users/" + user.getId())))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(user)));
     }
 
     @Test
     public void givenUserWithFailId_whenGetById_thenStatus404() throws Exception {
-        User user = getTestUser();
-        repository.save(user);
+        repository.save(getTestUser());
         mockMvc.perform(
                         get(URI.create("/users/-1")))
                 .andExpect(status().isNotFound());
@@ -166,15 +156,13 @@ class UserControllerMockMvcIntegrationTest {
 
     @Test
     public void givenUserAndFriend_whenAddFriend_ThenStatus204AndAddedFriend() throws Exception {
-        User user = getTestUser();
-        User friend = getTestFriendUser();
-        repository.save(user);
-        repository.save(friend);
+        User user = repository.save(getTestUser());
+        User friend = repository.save(getTestFriendUser());
         mockMvc.perform(
-                        put(URI.create("/users/1/friends/2")))
+                        put(URI.create("/users/" + user.getId() + "/friends/" + friend.getId())))
                 .andExpect(status().isNoContent());
-        assertTrue(user.getFriends().contains(2L));
-        assertTrue(friend.getFriends().contains(1L));
+        User userFromDB = repository.findById(user.getId()).orElseThrow();
+        assertTrue(userFromDB.getFriends().contains(friend.getId()));
     }
 
     @Test
@@ -188,56 +176,42 @@ class UserControllerMockMvcIntegrationTest {
 
     @Test
     public void givenUserAndFriend_whenDeleteFriend_ThenStatus204AndDeletedFriend() throws Exception {
-        User user = getTestUser();
-        User friend = getTestFriendUser();
-        user.getFriends().add(2L);
-        friend.getFriends().add(1L);
-        repository.save(user);
-        repository.save(friend);
+        User user = repository.save(getTestUser());
+        User friend = repository.save(getTestFriendUser());
+        repository.addFriend(user,friend);
         mockMvc.perform(
-                        delete(URI.create("/users/1/friends/2")))
+                        delete(URI.create("/users/" + user.getId() + "/friends/" + friend.getId())))
                 .andExpect(status().isNoContent());
-        assertFalse(user.getFriends().contains(2L));
-        assertFalse(friend.getFriends().contains(1L));
+        User userFromDB = repository.findById(user.getId()).orElseThrow();
+        assertFalse(userFromDB.getFriends().contains(friend.getId()));
     }
 
     @Test
     public void givenUserAndFriend_whenGetFriends_ThenStatus200() throws Exception {
-        User user = getTestUser();
-        User friend = getTestFriendUser();
-        user.getFriends().add(2L);
-        friend.getFriends().add(1L);
-        repository.save(user);
-        repository.save(friend);
+        User user = repository.save(getTestUser());
+        User friend = repository.save(getTestFriendUser());
+        repository.addFriend(user,friend);
         mockMvc.perform(
-                        get(URI.create("/users/1/friends")))
+                        get(URI.create("/users/" + user.getId() + "/friends")))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of(friend))));
     }
 
     @Test
     public void givenCommonFriends_whenGetCommonFriends_ThenStatus200() throws Exception {
-        User user = getTestUser();
-        User friend = getTestFriendUser();
-        User commonFriend = getTestCommonFriendUser();
-        user.getFriends().add(2L);
-        user.getFriends().add(3L);
-        friend.getFriends().add(1L);
-        friend.getFriends().add(3L);
-        commonFriend.getFriends().add(1L);
-        commonFriend.getFriends().add(2L);
-        repository.save(user);
-        repository.save(friend);
-        repository.save(commonFriend);
+        User user = repository.save(getTestUser());
+        User friend = repository.save(getTestFriendUser());
+        User commonFriend = repository.save(getTestCommonFriendUser());
+        repository.addFriend(user, commonFriend);
+        repository.addFriend(friend, commonFriend);
         mockMvc.perform(
-                        get(URI.create("/users/1/friends/common/2")))
+                        get(URI.create("/users/" + user.getId() + "/friends/common/" + friend.getId())))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(List.of(commonFriend))));
     }
 
     private User getTestUser() {
         User user = new User();
-        user.setId(1L);
         user.setEmail("mail@mail.ru");
         user.setLogin("dolore");
         user.setName("Nick Name");
@@ -247,7 +221,6 @@ class UserControllerMockMvcIntegrationTest {
 
     private User getTestFriendUser() {
         User friend = new User();
-        friend.setId(2L);
         friend.setEmail("friend@mail.ru");
         friend.setLogin("friend");
         friend.setName("friend adipisicing");
@@ -257,7 +230,6 @@ class UserControllerMockMvcIntegrationTest {
 
     private User getTestCommonFriendUser() {
         User commonFriend = new User();
-        commonFriend.setId(3L);
         commonFriend.setEmail("friend@common.ru");
         commonFriend.setLogin("common");
         commonFriend.setName("common");
@@ -267,7 +239,6 @@ class UserControllerMockMvcIntegrationTest {
 
     private User getUpdatedUser() {
         User user = new User();
-        user.setId(1L);
         user.setLogin("doloreUpdate");
         user.setName("est adipisicing");
         user.setEmail("mail@yandex.ru");

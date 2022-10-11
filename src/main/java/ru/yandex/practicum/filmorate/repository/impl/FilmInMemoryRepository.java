@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.repository.impl;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.repository.FilmRepository;
 
 import java.util.*;
@@ -11,8 +12,7 @@ public class FilmInMemoryRepository implements FilmRepository {
     private final Map<Long, Film> films = new HashMap<>();
     private long currentID;
 
-    @Override
-    public long getNextId() {
+    private long getNextId() {
         return ++currentID;
     }
 
@@ -31,11 +31,27 @@ public class FilmInMemoryRepository implements FilmRepository {
 
     @Override
     public Film save(Film film) {
+        film.setId(getNextId());
         films.put(film.getId(), film);
         return film;
     }
 
     @Override
+    public Film update(Film film) {
+        films.put(film.getId(), film);
+        return film;
+    }
+
+    @Override
+    public void addLike(Film film, User user) {
+        films.get(film.getId()).getLikes().add(user.getId());
+    }
+
+    @Override
+    public void deleteLike(Film film, User user) {
+        films.get(film.getId()).getLikes().remove(user.getId());
+    }
+
     public void deleteAll() {
         films.clear();
     }

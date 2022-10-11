@@ -11,8 +11,7 @@ public class UserInMemoryRepository implements UserRepository {
     private final Map<Long, User> users = new HashMap<>();
     private long currentID;
 
-    @Override
-    public long getNextID() {
+    private long getNextID() {
         return ++currentID;
     }
 
@@ -32,12 +31,28 @@ public class UserInMemoryRepository implements UserRepository {
 
     @Override
     public User save(User user) {
+        user.setId(getNextID());
         users.put(user.getId(), user);
         return user;
     }
 
     @Override
+    public User update(User user) {
+        users.put(user.getId(), user);
+        return user;
+    }
+
     public void deleteAll() {
         users.clear();
+    }
+
+    @Override
+    public void addFriend(User user, User friend) {
+        users.get(user.getId()).getFriends().add(friend.getId());
+    }
+
+    @Override
+    public void deleteFriend(User user, User friend) {
+        users.get(user.getId()).getFriends().remove(friend.getId());
     }
 }

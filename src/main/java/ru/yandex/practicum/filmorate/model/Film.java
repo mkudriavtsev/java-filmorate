@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Data
 public class Film{
@@ -37,7 +38,8 @@ public class Film{
 
     private final Set<Long> likes = new HashSet<>();
 
-    private MPA mpa;
+    @NotNull
+    private Mpa mpa;
 
-    private final Set<Genre> genres;
+    private final Set<Genre> genres = new TreeSet<>();
 }
